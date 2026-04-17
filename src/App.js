@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import LoginWrapper from './pages/login';
+import ResetPasswordWrapper from './pages/reset-password';
 import Dashboard from './pages/dashboard';
 import Tasks from './pages/tasks';
 import Projects from './pages/projects';
@@ -14,18 +15,17 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* Redirect root to login */}
-        <Route path="/" element={<Navigate to="/login" />} />
-
         {/* Auth */}
+        <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<LoginWrapper />} />
+        <Route path="/reset-password" element={<ResetPasswordWrapper />} />
 
         {/* Main pages */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tasks" element={<Tasks />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/teams" element={<Teams />} />
-        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+        <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
 
         {/* Manager-only page */}
         <Route

@@ -15,12 +15,48 @@ class Login extends Component {
       username: '',
       password: '',
       error: '',
-      loading: false
+      loading: false,
+      showForgotPassword: false,
+      forgotPasswordUsername: '',
+      forgotPasswordMessage: '',
+      forgotPasswordError: ''
     };
   }
 
   handleChange = (e) => {
     this.setState({ [e.target.name]: e.target.value });
+  };
+
+  toggleForgotPassword = () => {
+    this.setState(prevState => ({
+      showForgotPassword: !prevState.showForgotPassword,
+      forgotPasswordUsername: '',
+      forgotPasswordMessage: '',
+      forgotPasswordError: ''
+    }));
+  };
+
+  handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    this.setState({ forgotPasswordError: '', forgotPasswordMessage: '', loading: true });
+
+    try {
+      // Endpoint to request password reset (sends email to manager)
+      await axios.post('http://127.0.0.1:8000/auth/forgot-password/', {
+        username: this.state.forgotPasswordUsername
+      });
+
+      this.setState({
+        forgotPasswordMessage: 'If the user exists, your request has been sent to the Manager for approval.'
+      });
+    } catch (err) {
+      console.log('Forgot password error:', err.response?.data || err.message);
+      this.setState({
+        forgotPasswordError: err.response?.data?.detail || 'Failed to request password reset. Please try again.'
+      });
+    } finally {
+      this.setState({ loading: false });
+    }
   };
 
   handleLogin = async (e) => {
@@ -61,7 +97,10 @@ class Login extends Component {
   };
 
   render() {
-    const { username, password, error, loading } = this.state;
+    const { 
+      username, password, error, loading, 
+      showForgotPassword, forgotPasswordUsername, forgotPasswordMessage, forgotPasswordError 
+    } = this.state;
 
     return (
       <div className="container d-flex justify-content-center align-items-center min-vh-100 bg-light">
@@ -73,32 +112,82 @@ class Login extends Component {
               <p className="text-muted">Task Management System</p>
             </div>
 
-            <h4 className="text-center mb-4">Login</h4>
+            {!showForgotPassword ? (
+              <>
+                <h4 className="text-center mb-4">Login</h4>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+                {error && <div className="alert alert-danger">{error}</div>}
 
-            <form onSubmit={this.handleLogin}>
-              <input
-                name="username"
-                className="form-control mb-2"
-                placeholder="Username"
-                value={username}
-                onChange={this.handleChange}
-              />
+                <form onSubmit={this.handleLogin}>
+                  <input
+                    name="username"
+                    className="form-control mb-2"
+                    placeholder="Username"
+                    value={username}
+                    onChange={this.handleChange}
+                  />
 
-              <input
-                type="password"
-                name="password"
-                className="form-control mb-3"
-                placeholder="Password"
-                value={password}
-                onChange={this.handleChange}
-              />
+                  <input
+                    type="password"
+                    name="password"
+                    className="form-control mb-3"
+                    placeholder="Password"
+                    value={password}
+                    onChange={this.handleChange}
+                  />
 
-              <button className="btn btn-primary w-100" disabled={loading}>
-                {loading ? 'Logging in...' : 'Login'}
-              </button>
-            </form>
+                  <button className="btn btn-primary w-100 mb-3" disabled={loading}>
+                    {loading ? 'Logging in...' : 'Login'}
+                  </button>
+
+                  <div className="text-center">
+                    <button 
+                      type="button" 
+                      className="btn btn-link text-decoration-none" 
+                      onClick={this.toggleForgotPassword}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <>
+                <h4 className="text-center mb-4">Reset Password</h4>
+                
+                {forgotPasswordError && <div className="alert alert-danger">{forgotPasswordError}</div>}
+                {forgotPasswordMessage && <div className="alert alert-success">{forgotPasswordMessage}</div>}
+
+                <p className="text-muted small mb-4 text-center">
+                  Enter your username. An email will be sent to the manager with a link to reset your password.
+                </p>
+
+                <form onSubmit={this.handleForgotPasswordSubmit}>
+                  <input
+                    name="forgotPasswordUsername"
+                    className="form-control mb-3"
+                    placeholder="Username"
+                    value={forgotPasswordUsername}
+                    onChange={this.handleChange}
+                    required
+                  />
+
+                  <button className="btn btn-primary w-100 mb-3" disabled={loading || !!forgotPasswordMessage}>
+                    {loading ? 'Sending Request...' : 'Send Request'}
+                  </button>
+
+                  <div className="text-center">
+                    <button 
+                      type="button" 
+                      className="btn btn-link text-decoration-none text-muted" 
+                      onClick={this.toggleForgotPassword}
+                    >
+                      Back to Login
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
 
           </div>
         </div>
